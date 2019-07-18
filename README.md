@@ -12,3 +12,4 @@ pip install tkinter
 ```python
 python ibm.py
 ```
+## Steps
