@@ -28,7 +28,6 @@ python ibm.py
 <img align="center" width="180" height="300" src="https://github.com/capturemathan/IBM-Hack-Challenge/blob/master/Screenshot2.png">
 <img align="left" width="180" height="300" src="https://github.com/capturemathan/IBM-Hack-Challenge/blob/master/Screenshot3.png">
 <img align="center" width="180" height="300" src="https://github.com/capturemathan/IBM-Hack-Challenge/blob/master/Screenshot4.png">
-<img align="center" width="180" height="300" src="https://github.com/capturemathan/IBM-Hack-Challenge/blob/master/Screenshot5.png">
 
 ##  HyperLinks
 Video Link : [https://drive.google.com/open?id=1nfijHLwoez5a6ttDLaJIi4uxTz2ma1Ie]
