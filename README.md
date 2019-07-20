@@ -23,5 +23,12 @@ python ibm.py
 5. After parsing, 2 Xtrace files are browsed from the system.
 6. Clicking on compare renders the changes in .txt document.
 
+## Few Instances of the tool
+<img align="left" width="180" height="300" src="https://github.com/capturemathan/IBM-Hack-Challenge/blob/master/Screenshot%201.png">
+<img align="center" width="180" height="300" src="https://github.com/capturemathan/IBM-Hack-Challenge/blob/master/Screenshot2.png">
+<img align="left" width="180" height="300" src="https://github.com/capturemathan/IBM-Hack-Challenge/blob/master/Screenshot3.png">
+<img align="center" width="180" height="300" src="https://github.com/capturemathan/IBM-Hack-Challenge/blob/master/Screenshot4.png">
+<img align="center" width="180" height="300" src="https://github.com/capturemathan/IBM-Hack-Challenge/blob/master/Screenshot5.png">
+
 ##  HyperLinks
 Video Link : [https://drive.google.com/open?id=1nfijHLwoez5a6ttDLaJIi4uxTz2ma1Ie]
