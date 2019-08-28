@@ -1,11 +1,14 @@
-import tkinter as tk
-from tkinter import filedialog as fd
+import Tkinter as tk
+from Tkinter import filedialog as fd
+import sys
 import os
 import csv
 import re
 import os.path,subprocess
 from subprocess import STDOUT,PIPE
 
+parsed=[]
+parsedindex=[]
 class Browse(tk.Frame):
     def __init__(self, master, initialdir='', filetypes=()):
         super().__init__(master)
@@ -35,10 +38,11 @@ class Browse(tk.Frame):
         self._entry2 = tk.Entry(self, textvariable=self.trace1path)
         self._entry3 = tk.Entry(self, textvariable=self.trace2path)
         self.method_entry = tk.Entry(self, textvariable=self.method_path)
+
         self.depth_slider = tk.Scale(self, from_=1, to=100, orient=tk.HORIZONTAL)
 
-        self._xtrace = tk.Button(self, text='Generate Xtrace',command=self.xtrace)
-        #self.m_trace = tk.Button(self, text='Generate Application trace', command=self.mtrace)
+        self._xtrace = tk.Button(self, text='Generate Xtrace/Method Trace',command=self.xtrace)
+        self.m_trace = tk.Button(self, text='Generate Application trace', command=self.mtrace)
         self._convert = tk.Button(self, text='Convert',command=self.convert)
         self.method_names = tk.Label(self, text="Enter the methods")
         self.stack_depth = tk.Label(self,text='Set your StackTrace')
@@ -64,7 +68,7 @@ class Browse(tk.Frame):
         self.stack_depth.pack(anchor='center',pady=10)
         self.depth_slider.pack()
         self._xtrace.pack(anchor='center',padx=50,pady=10)
-        #self.m_trace.pack(anchor='center',padx=50)
+        self.m_trace.pack(anchor='center',padx=50)
         self._convert.pack(anchor='center',padx=50,pady=10)
         self._parse.pack(anchor='center',padx=50,pady=10)
 
@@ -112,21 +116,88 @@ class Browse(tk.Frame):
         print("Xtrace generated")
 
     def mtrace(self):
+    	import_statement= 'import com.ibm.jvm.Trace;'
+    	templates_dec='static int handle;static String[] templates;'
+    	class_name='"Main"'
+    	function_name='""'
+    	entry_trace='Trace.trace( handle, 0,'+function_name+');'
+    	exit_trace='Trace.trace( handle, 1, '+function_name +');'
+    	indexfound=0;
+    	javafile=self.x
+    	w=javafile.split('/')
+    	y=w[len(w)-1]
+    	javaclass='"'+y.split('.')[0]+'"'
+    	main_initialize='templates = new String[ 5 ];\n templates[ 0 ] = Trace.ENTRY+ "Entering %s";\ntemplates[ 1 ] = Trace.EXIT+ "Exiting %s";\n templates[ 2 ] = Trace.EVENT+ "Event id %d, text = %s";\ntemplates[ 3 ] = Trace.EXCEPTION + "Exception: %s";\n templates[ 4 ] = Trace.EXCEPTION_EXIT + "Exception exit from %s";\nhandle = Trace.registerApplication('+ javaclass+', templates );\nfor (int i = 0; i < args.length; i++ ) \n{ \nSystem.err.println( "Trace setting: " + args[ i ] );\nTrace.set( args[ i ] ); \n}\n Trace.trace( handle, 2, 1, "Trace initialized" );'
+    	with open (javafile, "r") as myfile:
+		    data=myfile.readlines()
+		    index=[]
+		    methods=[]
+		    parsedindex=[]
+		    packages=[]
+		    package_index=-1
+		    classes=[]
+		    classes_index=[]
+		    public_class=""
+		    for i,line in enumerate(data):
+		        if "public" in line:
+		            methods.append(line)
+		            index.append(i)
+		        if "class" in line:
+		        	if line not in methods:
+		        		methods.append(line)
+		        		index.append(i)     
+		        elif "private" in line:
+		            methods.append(line)
+		            index.append(i)
+		        elif "static" in line:
+		            methods.append(line)
+		            index.append(i)
+		        elif "package" in line:
+		        	packages.append(line)
+		        	package_index=i
+		    for p,i in enumerate(methods):
+		        if "new" in i:
+		            pass
+		        elif "class" in i:
+		        	for k in range(index[p]-1,len(data)):
+		        		if "{" in data[k]:
+		        			classes_index.append(k)
+		        			break
+		        else:
+		            parsed.append(i)
+		            parsedindex.append(index[p])
+		    output=data
 
-        print('Method trace Generating.....')
-        javafile=self.x
-        x=subprocess.check_call(['javac', javafile])
+		    
 
-        if(self.execute_java('sample.java',javafile)!=0 or x!=0):
-            print('Method trace generated')
+		    output[package_index+1]+=import_statement
+		    for x in classes_index:	
+		    	output[x]+=templates_dec			
+		    for i,line in enumerate(parsed):
+		    	if "main" in line:
+		    		indexfound=i
+		    		output[parsedindex[indexfound]+1]+=main_initialize
+		    		main_initialize=""
+		    		break
+		    
+		    for x in parsedindex:
+		    	flag=0
+		    	for j in range(x,len(output)):
+		    		if "{" in output[j] and flag==0:
+		    			function_name=output[x]
+		    			output[j]+=(entry_trace)
+		    			flag=1
 
-    def execute_java(self,java_file, stdin):
-        java_class,ext = os.path.splitext(java_file)
-        cmd = ['java', java_class]
-        proc = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+		    f=open(javafile,"w")
+		    for i in output:
+		    	f.write(i)
+		    f.close()
 
-
-    
+		    print('Application trace Generating.....')
+		    os.system('javac '+javafile)
+		    sys.stdout=open("output.txt","w")
+		    os.system('java '+javaclass+' iprint='+javaclass+' > out.txt')
+     
     def convert(self):
     	print('converting')
     	os.system('java com.ibm.jvm.format.TraceFormat traceout'+str(self.count)+'.trc')
