@@ -48,6 +48,11 @@ class Browse(tk.Frame):
         self.selected_methods=[]
         self.converted_texts=tk.StringVar()
 
+        self.listmethodentry1=[]
+        self.listmethodexit1=[]
+        self.listmethodentry2=[]
+        self.listmethodexit2=[]
+
         self._create_widgets()
         self._display_widgets()
 
@@ -307,27 +312,86 @@ class Browse(tk.Frame):
     def compare(self):
         print("comparing")
         check='0'
-        with open(self.trace1,'rb') as csv_file1:
-            with open(self.trace2,'rb') as csv_file2:
-                with open('report'+str(self.count)+'.txt','wb') as writefile:
-                    csv_as_list1 = [row1 for row1 in csv_file1 if row1 is not "\0"]
-                    csv_as_list2 = [row2 for row2 in csv_file2 if row2 is not "\0"]
-                    for row1 in csv_as_list1:
-                        try:
-                            for row2 in csv_as_list2:
-                                try:
-                                    if(row1!=row2):
-                                        writefile.write(row1)
-                                        check='1'
-                                        break
-                                except:
-                                    pass
-                        except:
-                            pass
-                    if(check=='0'):
-                        writefile.write('No change'.decode())
-               
-       
+        with open(self.trace1,'r') as trace_file1:
+            with open(self.trace2,'r') as trace_file2:
+                with open('report'+str(self.count)+'.csv','w') as csvfile:
+                    data=trace_file1.readlines()
+                    instack=[]
+                    outstack=[]
+                    c=0
+                    for i,line in enumerate(data):
+                        if "Entry" in line:
+                            if ">get" in line:
+                                entry=line.split("Entry")
+                                methodentry=entry[-1]
+                                argument=methodentry.split(">")
+                                argumententry=argument[-1]
+                                instack.append(argumententry)
+                        if "Exit" in line:
+                            if "<get" in line:
+                                exit=line.split("Exit")
+                                methodexit=exit[-1]
+                                outstack.append("Exit")
+                                if(len(instack)!=0):
+                                    self.listmethodentry1.append(instack.pop())
+                                    self.listmethodexit1.append(outstack[-1])
+
+                    data=trace_file2.readlines()
+                    instack=[]
+                    outstack=[]
+                    c=0
+                    File = open("final.csv","w")
+                    writeFirst = csv.writer(File)
+                    rowval = ["Entry of Trace1","Exit of Trace1","Entry of Trace2", "Exit of Trace2"]
+                    writeFirst.writerow(rowval)
+                    File.close()
+
+                    for i,line in enumerate(data):
+                        if "Entry" in line:
+                            if ">get" in line:
+                                entry=line.split("Entry")
+                                methodentry=entry[-1]
+                                argument=methodentry.split(">")
+                                argumententry=argument[-1]
+                                instack.append(argumententry)
+                        if "Exit" in line:
+                            if "<get" in line:
+                                exit=line.split("Exit")
+                                methodexit=exit[-1]
+                                outstack.append("Exit")
+                                if(len(instack)!=0):
+                                    self.listmethodentry2.append(instack.pop())
+                                    self.listmethodexit2.append(outstack[-1])
+
+                    f= open("result.txt","w+")
+                    csvcontent = []
+                    for i in range(len(self.listmethodexit1)):
+                        print(self.listmethodentry1[i],self.listmethodexit2[i],self.listmethodentry2[i],self.listmethodexit2[i])
+                        csvcontent = [self.listmethodentry1[i],self.listmethodexit2[i],self.listmethodentry2[i],self.listmethodexit2[i],]
+                        #filewriter.writerow([self.listmethodentry1[i],self.listmethodexit2[i],self.listmethodentry2[i],self.listmethodexit2[i]]) 
+                        f.write(self.listmethodentry1[i]+"\t"+self.listmethodexit1[i]+"#"+self.listmethodentry2[i]+"#"+self.listmethodexit2[i]+"\n")       
+                        with open("final.csv","a") as csvfile:
+                            writer = csv.writer(csvfile)
+                            writer.writerow(csvcontent)
+                            
+
+                        #csvcontent.append([self.listmethodentry1[i]+self.listmethodexit2[i]+self.listmethodentry2[i]+self.listmethodexit2[i]])
+                    f.close()
+                    csvfile.close()
+
+                    #with open("final.csv","w+") as csvfile:
+                    #    filewriter = csv.writer(csvfile,delimiter='|',quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                    #    filewriter.writerow(['Entry Trace1','Exit Trace1','Entry Trace2','Exit Trace2'])
+                    #    for i in csvcontent:
+                    #        filewriter.writerow(i)
+
+                    #with open('reportfinal'+str(self.count)+'.csv','w') as finalcsv:
+                    """for i in csvcontent:
+                        with open('xTraceResults.csv', mode='w') as xTResults:
+                            xResults = csv.writer(xTResults, delimiter='#', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                            xResults.writerow(i)    """
+
+
 
     def parse(self):
         print("parsing")
